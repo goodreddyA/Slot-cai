@@ -1,0 +1,35 @@
+% Facts
+edge(a, b, 2).
+edge(a, c, 5).
+edge(b, d, 3).
+edge(c, e, 1).
+edge(d, e, 4).
+edge(d, goal, 7).
+edge(e, goal, 2).
+
+% Heuristic function (Manhattan distance to the goal)
+heuristic(Node, H) :- goal(goal), edge(Node, goal, H).
+
+% Best-First Search
+best_first_search(CurrentNode, Path) :-
+    best_first_search_helper([CurrentNode-[CurrentNode]], Path).
+
+best_first_search_helper([Node-Path | _], Path) :-
+    goal(Node).
+best_first_search_helper([Node-CurrentPath | Rest], Path) :-
+    findall(NextNode-NewPath,
+            (edge(Node, NextNode, _), \+ member(NextNode, CurrentPath),
+            append(CurrentPath, [NextNode], NewPath)),
+            Successors),
+    append(Rest, Successors, UpdatedQueue),
+    predsort(compare_heuristics, UpdatedQueue, SortedQueue),
+    best_first_search_helper(SortedQueue, Path).
+
+% Comparison predicate for sorting by heuristic values
+compare_heuristics(Order, _, X-Y) :-
+    heuristic(X, HX),
+    heuristic(Y, HY),
+    compare(Order, HX, HY).
+
+% Example query:
+% best_first_search(a, Path).
